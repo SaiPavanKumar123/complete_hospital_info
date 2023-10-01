@@ -1,0 +1,76 @@
+package com.insurance.Hospital.controller;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.insurance.Hospital.models.DiseaseDetails;
+import com.insurance.Hospital.models.DiseaseProcedures;
+import com.insurance.Hospital.contractors.DiseaseProceduresServiceInterface;
+
+@Controller
+@RequestMapping(value="/hospital")
+public class ProceduresController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProceduresController.class);
+
+    @Autowired(required = true)
+    DiseaseProceduresServiceInterface disc;
+
+    // To get procedures based on diseaseId
+    @GetMapping(value = "/procedures/{diseaseId}")
+    public String getProceduresByDisId(@PathVariable String diseaseId, Model model) {
+        try {
+            logger.info("Fetching procedures for disease ID: {}", diseaseId);
+            List<DiseaseProcedures> procedures = disc.getProceduresByDisId(Integer.parseInt(diseaseId));
+            logger.info("Procedures retrieved successfully.");
+            logger.debug("Procedures: {}", procedures);
+            model.addAttribute("procedures", procedures);
+            return "diseaseProcedures";
+        } catch (Exception e) {
+            logger.error("Error occurred while fetching procedures: {}", e.getMessage());
+            // Handle the exception and return an appropriate view or message
+            return "error";
+        }
+    }
+    @PostMapping("procedures/addProcedure")
+	@ResponseBody
+	public String addDisease(
+	    @RequestParam(name = "discId") String discId,
+	    @RequestParam(name = "procName") String procName,
+	    @RequestParam(name = "icdCode") String icdCode) {
+	    System.out.println("start add");
+	    int message = disc.addProcedure( Integer.parseInt(discId), procName, icdCode);
+
+	    System.out.println("end add");
+	    if (message == 1)
+	        return "record added successfully";
+	    else
+	        return "error occurred while adding record";
+	}
+
+
+	@PostMapping("procedures/deleteProcedure")
+	@ResponseBody
+	public String deleteProcedure(@RequestParam(name = "procId") String procId) {
+		System.out.println("delete start" + procId);
+		int message = disc.deleProcedure(Integer.parseInt(procId));
+		System.out.println("delete complete");
+		System.out.println(message);
+		if (message == 1)
+			return "record added successfully";
+		else
+			return "error occured while adding record";
+	}
+
+}
